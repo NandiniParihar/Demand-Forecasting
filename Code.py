@@ -86,6 +86,89 @@ print("RF MAPE:", rf_mape)
 print("RF R2:", rf_r2)
 
 
+# Cell 14 Sample Data (RAM Optimized)
+
+lstm_df = df.sample(
+    5000,
+    random_state=42
+).copy()
+
+print(lstm_df.shape)
+
+
+scaler = MinMaxScaler()
+
+scaled = scaler.fit_transform(lstm_df)
+
+scaled_df = pd.DataFrame(
+    scaled,
+    columns=lstm_df.columns
+)
+
+
+sequence_length = 10
+
+X_lstm = []
+y_lstm = []
+
+for i in range(
+    sequence_length,
+    len(scaled_df)
+):
+
+    X_lstm.append(
+        scaled_df.drop(
+            'Demand',
+            axis=1
+        ).iloc[
+            i-sequence_length:i
+        ].values
+    )
+
+    y_lstm.append(
+        scaled_df['Demand'].iloc[i]
+    )
+
+X_lstm = np.array(X_lstm)
+y_lstm = np.array(y_lstm)
+
+print(X_lstm.shape)
+
+
+split = int(
+    len(X_lstm)*0.8
+)
+
+X_train_lstm = X_lstm[:split]
+X_test_lstm = X_lstm[split:]
+
+y_train_lstm = y_lstm[:split]
+y_test_lstm = y_lstm[split:]
+
+
+
+model = Sequential()
+
+model.add(
+    LSTM(
+        32,
+        input_shape=(
+            X_train_lstm.shape[1],
+            X_train_lstm.shape[2]
+        )
+    )
+)
+
+model.add(Dense(16))
+
+model.add(Dense(1))
+
+model.compile(
+    optimizer='adam',
+    loss='mse'
+)
+
+model.summary()
 
 
 
